@@ -155,12 +155,23 @@ function! Stack()
     endif
   endfunc
 
+  " chainable printer
+  func obj.p(...) dict
+    let depth = self.size()
+    if a:0
+      let depth = a:1
+    endif
+    echo self.stack[(self.size()-depth):-1]
+    return self
+  endfunc
+
   " UNCHAINABLE: Returns a copy of the whole stack
   " could do with a better name?
   func obj.s() dict
-    return copy(self.stack)
+    return deepcopy(self.stack)
   endfunc
 
+  " UNCHAINABLE: Returns a copy of the whole stack
   func obj.string() dict
     return string(self.stack)
   endfunc
@@ -180,6 +191,42 @@ function! Stack()
   " NO EXPLICIT TESTS YET:
   func obj.over() dict
     return self.push(self.stack[-2])
+  endfunc
+
+  " NO EXPLICIT TESTS YET:
+  " performs a left-rotation
+  func obj.rot() dict
+    if self.size() >= 3
+      let x = self.stack[-3]
+      let self.stack[-3] = self.stack[-2]
+      let self.stack[-2] = self.stack[-1]
+      let self.stack[-1] = x
+    endif
+    return self
+  endfunc
+
+  " performs a right-rotation
+  func obj.rotate(...) dict
+    let num_elems = 1
+    let rot_span  = 3
+    if a:0
+      let num_elems = a:1
+      if a:0 == 2
+        let rot_span = a:2
+      endif
+    endif
+    if num_elems < rot_span
+      let A = add([], self.pop(num_elems))
+      let B = self.pop(rot_span - len(num_elems))
+      call self.pusheach(A).pusheach(B)
+    endif
+    return self
+  endfunc
+
+  " NO EXPLICIT TESTS YET:
+  func obj.drop() dict
+    call self.pop()
+    return self
   endfunc
 
   " NO EXPLICIT TESTS YET:
@@ -206,6 +253,18 @@ function! Stack()
       let cnt = a:1
     endif
     call remove(self.stack, 0, (self.size() - cnt))
+    return self
+  endfunc
+
+  " NO EXPLICIT TESTS YET:
+  " by default, moves element at TOS to bottom of stack
+  func obj.sink(...) dict
+    let depth = 0
+    if a:0
+      let depth = a:1
+    endif
+    let x = self.pop()
+    call insert(self.stack, x, depth)
     return self
   endfunc
 
@@ -363,6 +422,26 @@ function! Stack()
       endif
     endfor
     call self.pusheach(newlists)
+    return self
+  endfunc
+
+  " buffer interaction
+
+  func obj.setline(...) dict
+    let lnum = line('.')
+    if a:0
+      let lnum = a:1
+    endif
+    call setline(lnum, self.pop())
+    return self
+  endfunc
+
+  func obj.append(...) dict
+    let lnum = line('.')
+    if a:0
+      let lnum = a:1
+    endif
+    call append(lnum, self.pop())
     return self
   endfunc
 
