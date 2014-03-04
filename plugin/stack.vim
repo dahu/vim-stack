@@ -112,7 +112,9 @@ function! Stack()
   "---
 
   func obj.flush() dict
-    call remove(self.stack, 0, -1)
+    if self.size() > 0
+      call remove(self.stack, 0, -1)
+    endif
     return self
   endfunc
 
@@ -341,6 +343,27 @@ function! Stack()
     endif
     let x = self.pop(cnt)
     return self.push(Zip(self.pop(cnt), x, method))
+  endfunc
+
+  " slice list at TOS into cnt slices each as separate lists on the stack
+  func obj.slice(...) dict
+    let x = deepcopy(self.pop())
+    let len = len(x)
+    let cnt = len / 2
+    if a:0
+      let cnt = a:1
+    endif
+    let newlists = []
+    for idx in range(0, len, cnt)
+      if idx < len
+        if (cnt-1) > len(x)
+          let cnt = len(x)
+        endif
+        call add(newlists, remove(x, 0, (cnt-1)))
+      endif
+    endfor
+    call self.pusheach(newlists)
+    return self
   endfunc
 
   return obj
