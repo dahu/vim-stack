@@ -304,6 +304,7 @@ function! Stack()
     return self
   endfunc
 
+  " sum the top two numbers on the stack
   func obj.sum(...) dict
     let cnt = 2
     if a:0
@@ -319,8 +320,14 @@ function! Stack()
     return self
   endfunc
 
+  " sum the whole stack
   func obj.sumall() dict
     return self.sum(self.size())
+  endfunc
+
+  " sum the single list of numbers at TOS
+  func obj.sumlist() dict
+    return self.push(eval(join(self.pop(), '+')))
   endfunc
 
   " string stack operations
@@ -351,6 +358,28 @@ function! Stack()
   func obj.len() dict
     let o = self.pop()
     return self.push(len(o))
+  endfunc
+
+  " UNTESTED:
+  " works on single strings at TOS or a list of strings at TOS
+  func obj.matchstr(pattern) dict
+    let x = self.pop()
+    if type(x) == type([])
+      return self.push(map(x, 'matchstr(v:val, a:pattern)'))
+    else
+      return self.push(matchstr(x, a:pattern))
+    endif
+  endfunc
+
+  " UNTESTED:
+  " works on single strings at TOS or a list of strings at TOS
+  func obj.substitute(search, replace, flags) dict
+    let x = self.pop()
+    if type(x) == type([])
+      return self.push(map(x, 'substitute(v:val, a:search, a:replace, a:flags)'))
+    else
+      return self.push(substitute(x, a:search, a:replace, a:flags))
+    endif
   endfunc
 
   " list stack operations
