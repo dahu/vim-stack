@@ -19,8 +19,8 @@ call vimtap#Is(x, 6, 6, 'mul')
 let x = _S.push(3).mod().top()
 call vimtap#Is(x, 0, 0, 'mod')
 
-let x = _S.flush().push(1).push(2).push(3).push(4).push(5).sum(3).top()
-call vimtap#Is(x, 12, 12, 'sumall')
+let x = _S.flush().push(1).push(2).push(3).push(4).push(5).nsum(3).top()
+call vimtap#Is(x, 12, 12, 'nsum')
 
 let x = _S.flush().push(1).push(2).push(3).push(4).push(5).sumall().top()
 call vimtap#Is(x, 15, 15, 'sumall')

@@ -2,7 +2,7 @@
 
 function! Run(n)
   call g:_S.flush()
-  call g:_S.push(GCollect('green')).matchstr('\d\+').sumlist()
+  call g:_S.push(GCollect('green')).matchstr('\d\+').sum()
   call append('$', g:_S.top())
 endfunction
 
