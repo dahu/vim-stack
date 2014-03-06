@@ -58,6 +58,12 @@ function! Stack()
     return len(self.stack)
   endfunc
 
+  func obj.pushsize() dict
+    call self.push(len(self.stack))
+    return self
+  endfunc
+
+
   func obj.map(str) dict
     call map(self.stack[-1], a:str)
     return self
@@ -74,6 +80,16 @@ function! Stack()
   endfunc
 
   func obj.filter(str) dict
+    call filter(self.stack[-1], a:str)
+    return self
+  endfunc
+
+  func obj.nfilter(cnt, str) dict
+    call filter(self.stack[(self.size() - a:cnt:-1], a:str)
+    return self
+  endfunc
+
+  func obj.filterall(str) dict
     call filter(self.stack, a:str)
     return self
   endfunc
@@ -304,8 +320,13 @@ function! Stack()
     return self
   endfunc
 
-  " sum the top two numbers on the stack
-  func obj.sum(...) dict
+  " sum the single list of numbers at TOS
+  func obj.sum() dict
+    return self.push(eval(join(self.pop(), '+')))
+  endfunc
+
+  " sum the top <n> numbers on the stack
+  func obj.nsum(...) dict
     let cnt = 2
     if a:0
       let cnt = a:1
@@ -322,13 +343,9 @@ function! Stack()
 
   " sum the whole stack
   func obj.sumall() dict
-    return self.sum(self.size())
+    return self.nsum(self.size())
   endfunc
 
-  " sum the single list of numbers at TOS
-  func obj.sumlist() dict
-    return self.push(eval(join(self.pop(), '+')))
-  endfunc
 
   " string stack operations
 
@@ -368,6 +385,17 @@ function! Stack()
       return self.push(map(x, 'matchstr(v:val, a:pattern)'))
     else
       return self.push(matchstr(x, a:pattern))
+    endif
+  endfunc
+
+  " UNTESTED:
+  " works on single strings at TOS or a list of strings at TOS
+  func obj.matchlist(pattern) dict
+    let x = self.pop()
+    if type(x) == type([])
+      return self.push(map(x, 'matchlist(v:val, a:pattern)'))
+    else
+      return self.push(matchlist(x, a:pattern))
     endif
   endfunc
 

@@ -3,4 +3,146 @@ Vim Stack
 
 __This is not forth for Vim.__
 
+VimStack brings stack processing to your Vim command-line.
 
+Ever wanted to sum the first number on every line containing the word "green"?
+
+    :echo _S.push(GCollect('green')).matchstr('\d\+').sumall().top()
+
+VimStack provides a global stack called ++_S++ by default, but you're free to
+create as many as you like.
+
+There are many functions for manipulating the stack and operating on the
+current value at the top of the stack (TOS). See ++:help vim-stack-functions++
+for a complete list. Here is a quick overview:
+
+VimStack Function Overview
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TOS     = the Top Of Stack element
+obj     = an element or a list of elements
+e       = an element
+e'      = a modified element
+n, m    = integer counts
+<str>   = a function argument
+<[str]> = an optional function argument
+[s]     = whole stack
+[e]     = list of elements
+[e']    = modified list of elements
+--      = chainable stack return
+->      = returns a non-stack value (non-chainable)
+
+flush      ( [s] -- [] )                    - delete the entire stack
+empty      ( [s] -> bool )                  - true if stack is empty
+size       ( [s] -> int )                   - number of elements on the stack
+pushsize   ( e1..en -- e1..en n )           - push number of elements onto the stack
+
+map        ( [e] <str> -- [e'] )            - map <str> over list at TOS
+nmap       ( e1..en <n, str> -- e1'..en' )  - map <str> over <n> elements
+mapall     ( [s] <str> -- [s'] )            - map <str> over whole stack
+filter     ( [e] <str> -- [e'] )            - filter list at TOS through <str>
+nfilter    ( e1..en <n, str> -- ei'..ej' )  - filter <n> elements through <str>
+filterall  ( [s] <str> -- [s'] )            - filter whole stack through <str>
+sort       ( [s] <[func]> -- [s'] )         - sort whole stack (opt. sort <func>)
+reverse    ( [e] -- [e'] )                  - reverse list at TOS
+           ( e1..en <n> -- en..e1 )         - reverse <n> elements
+range      ( [s] <n, m> -- [s + [en..em]] ) - push a list containing range <n>..<m>
+rangeeach  ( [s] <n, m> -- [s + en..em] )   - push each element of range <n>..<m>
+
+push       ( [s] <obj> -- [s + obj] )       - push element <obj> onto stack
+pusheach   ( [s] [<e1..en>] -- [s + e1..en] ) - push each element of list onto stack
+pop        ( [s] -> TOS )                   - remove and return TOS
+           ( [s] <n> -> [e1..en] )          - remove and return <n> elements from stack
+top        ( [s] -> [s] )                   - return TOS
+
+swap       ( e1 e2 -- e2 e1 )               - swap the top two elements
+over       ( e1 e2 -- e1 e2 e1 )            - copy second element to TOS
+rot        ( e1 e2 e3 -- e2 e3 e1 )         - single element, 3 span left rotate
+rotate     ( [s] <n=1, count=3> -- [s'] )   - <n> element, <count> span right rotate
+drop       ( [s] -- [s'] )                  - silently remove TOS
+dup        ( e -- e e )                     - duplicate TOS
+keep       ( [s] -- e )                     - drop all but TOS
+           ( [s + e1..en] <n> -- e1..en )   - drop all but <n> elements
+sink       ( [s + e] -- [e + s] )           - move TOS to bottom of stack
+           ( [s + t + e] <m> -- [s + e + t] )  - move TOS to <m> from bottom of stack
+           ( [s + t + e] <-m> -- [s + e + t] ) - move TOS down <m+1> elements
+
+p          ( [s] -- [s] )                   - print whole stack
+           ( [s] <n> -- [s] )               - print <n> elements of stack
+s          ( [s] -> [s] )                   - returns a copy of the stack
+string     ( [s] -> "[s]" )                 - returns a string() copy of the stack
+
+add        ( e1 e2 -- e1+e2 )               - add top two numbers
+sub        ( e1 e2 -- e1-e2 )               - subtract top two numbers
+mul        ( e1 e2 -- e1*e2 )               - multiply top two numbers
+div        ( e1 e2 -- e1/e2 )               - divide top two numbers
+fdiv       ( e1 e2 -- e1/e2 )               - divide (float) top two numbers
+mod        ( e1 e2 -- e1%e2 )               - modulo top two numbers
+sum        ( [e1..en] -- [e1+e2+...+en] )   - replace TOS with sum of its elements
+nsum       ( [s] <n> -- [s] + e )           - replace <n> elements with their sum
+sumall     ( [s] -- e )                     - replace whole stack with its sum
+
+join       ( e1 e2 <[sep='']> -- "e1<sep>e2" ) - join top two elements with <sep>
+njoin      ( e1..en <cnt, <sep=''> -- "e1<sep>e2><sep>..<sep>en" ) - join <n> elems
+joinall    ( [s] <sep=''> -- "e1<sep>..<sep>en" )
+len        ( e -- e' )                      - replace TOS with its length
+matchstr   ( e <pattern> -- e' )            - replace TOS with string matches
+           ( [e] <pattern> -- [e'] )        - replace elements of TOS with str matches
+matchlist  ( e <pattern> -- [e'] )          - replace TOS with match list
+           ( [e] <pattern> -- [[e']] )      - replace each element of TOS with match list
+substitute ( e <srch, rplc, flgs> -- e' )   - replace TOS with substitution result
+           ( [e] <pattern> -- [e'] )        - replace elements of TOS with substitutions
+
+list       ( [s] <n=all> -- [s'] )          - wrap <n> elements at TOS in a list
+split      ( "e" <pattern='\s\+'> -- e1 .. en ) - split string at TOS on <pattern>
+explode    ( [e] -- e1 .. en )              - replace list at TOS with its elements
+zip        ( [e1] [e2] <method=0> -- [e1a,e2a,e1b,e2b] ) - combine two lists into one
+           ( [e1] [e2] <method=1> -- [[e1a,e2a], [e1b,e2b]] ) - combine two lists into one of pairs
+           ( [e1] [e2] <method=:> -- ['e1a:e2a', 'e1b:e2b'] ) - combine two lists into one of connected strings separated by <method>
+zipset     ( e1 e2 <method=0, n=half> -- [e1a,e2a,e1b,e2b] ) - combine <2*n> elements into a list
+slice      ( [e] <n=half> -- [e1..en/2] [e(n/2)+1..en] ) - split a list into slices of size <n>
+
+setline    ( e <lnum='.'> -- )              - remove TOS and write it to buffer at <lnum>
+append     ( e <lnum='.'> -- )              - remove TOS and write it to buffer after <lnum>
+
+Installation
+~~~~~~~~~~~~
+
+If you don't have a preferred installation method, I recommend installing
+https://github.com/tpope/vim-pathogen[pathogen.vim], and then simply copy and
+paste:
+
+    cd ~/.vim/bundle
+    git clone git://github.com/dahu/vim-stack.git
+
+Once help tags have been generated, you can view the manual with ++:help
+VimStack++.
+
+Contribute
+~~~~~~~~~~
+
+- Issue Tracker: https://github.com/dahu/vim-stack/issues
+- Source Code: https://github.com/dahu/vim-stack
+
+FAQ
+~~~
+
+* Why?!
++
+VimStack came about from an interest in the stack-processing model of forth-ish
+languages, and a desire to reduce the number of steps needed at the command-line
+to get certain tasks done in Vim.
+
+Support
+~~~~~~~
+
+If you are having issues, please let me know.
+I'm contactable by email and frequently join the #vim channel on freenode IRC.
+
+* Barry Arthur   <barry.arthur@gmail.com>    bairui
+
+License
+~~~~~~~
+
+VimStack is Copyright (c) Barry Arthur. Distributed under the same terms as Vim
+itself. See ++:help license++ for details.
