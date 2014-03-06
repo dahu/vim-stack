@@ -19,6 +19,7 @@ for a complete list. Here is a quick overview:
 VimStack Function Overview
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+....
 TOS     = the Top Of Stack element
 obj     = an element or a list of elements
 e       = an element
@@ -104,6 +105,7 @@ slice      ( [e] <n=half> -- [e1..en/2] [e(n/2)+1..en] ) - split a list into sli
 
 setline    ( e <lnum='.'> -- )              - remove TOS and write it to buffer at <lnum>
 append     ( e <lnum='.'> -- )              - remove TOS and write it to buffer after <lnum>
+....
 
 Installation
 ~~~~~~~~~~~~
