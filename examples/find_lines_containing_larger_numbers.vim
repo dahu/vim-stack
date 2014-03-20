@@ -6,7 +6,8 @@ function! Run(n)
         \.filter('v:val[1] =~ "\\d"')
         \.unzip().extract('\d\+').zip(1)
         \.filter2('v:val > 50')
-  call append('$', map(g:_S.top(), 'join(v:val, ": ")'))
+        \.unzip().map('join(v:val, ", ")').zip(": ")
+  call append('$', g:_S.top())
 endfunction
 
 call Run(search('^\s*fini\%[sh]', 'n')+1)
