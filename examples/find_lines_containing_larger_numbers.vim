@@ -2,12 +2,11 @@
 
 function! Run(n)
   call g:_S.flush()
-  call g:_S.pusheach(getline(1,'$'))
-        \.mapall('[v:key+1, v:val]')
-        \.filterall('v:val[1] =~ "\\d"')
-        \.mapall('[v:val[0], map(split(substitute(v:val[1], "\\D\\+", " ", "g")), ''str2nr(v:val)'')]')
-        \.filterall('filter(v:val[1], ''v:val > 50'') != []').s()
-  call append('$', map(g:_S.s(), 'join(v:val, ": ")'))
+  call g:_S.pushline(1,'$').enumerate()
+        \.filter('v:val[1] =~ "\\d"')
+        \.unzip().extract('\d\+').zip(1)
+        \.filter2('v:val > 50')
+  call append('$', map(g:_S.top(), 'join(v:val, ": ")'))
 endfunction
 
 call Run(search('^\s*fini\%[sh]', 'n')+1)

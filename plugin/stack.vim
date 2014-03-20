@@ -43,6 +43,20 @@ function! Zip(a, b, ...)
   endif
 endfunction
 
+function! ExtractPattern(str, pattern)
+  let pattern = a:pattern
+  let str = a:str
+  let rlist = []
+  let ofs = 0
+  let ms = match(str, pattern, ofs)
+  while ms != -1
+    let me = matchend(str, pattern, ofs)
+    call add(rlist, strpart(str, ms, me-ms))
+    let ofs = ms+me
+    let ms = match(str, pattern, ofs)
+  endwhile
+  return rlist
+endfunction
 
 function! Stack()
   let obj = {}
@@ -82,6 +96,10 @@ function! Stack()
   func obj.filter(str) dict
     call filter(self.stack[-1], a:str)
     return self
+  endfunc
+
+  func obj.filter2(str) dict
+    return self.filter('filter(v:val[1], ''' . a:str . ''') != []')
   endfunc
 
   func obj.nfilter(cnt, str) dict
@@ -143,6 +161,26 @@ function! Stack()
   func obj.pusheach(o) dict
     call extend(self.stack, a:o)
     return self
+  endfunc
+
+  " TODO: these two functions share redundant code. DRY it
+  func obj.pushline(start, ...) dict
+    if a:0
+      let lines = getline(a:start, a:1)
+    else
+      let lines = getline(a:start)
+    endif
+    return self.push(lines)
+  endfunc
+
+  " adds each line in range start,end separately to the top of the stack
+  func obj.pusheachline(start, ...) dict
+    if a:0
+      let lines = getline(a:start, a:1)
+    else
+      let lines = getline(a:start)
+    endif
+    return self.pusheach(lines)
   endfunc
 
   func obj.pop(...) dict
@@ -253,7 +291,7 @@ function! Stack()
       let cnt = a:1
     endif
     if cnt == 1
-      return self.push(self.top())
+      return self.push(deepcopy(self.top()))
     else
       return self.pusheach(repeat([self.top()], a:cnt))
     endif
@@ -435,6 +473,27 @@ function! Stack()
     return self.pusheach(self.pop())
   endfunc
 
+  func obj.enumerate(...) dict
+    let from = 1
+    if a:0
+      let from = a:1
+    endif
+    return self.map('[v:key+' . from . ', v:val]')
+  endfunc
+
+  func obj.extract(pattern) dict
+    let x = self.pop()
+    let rlist = []
+    if type(x) == type([])
+      for s in x
+        call add(rlist, ExtractPattern(s, a:pattern))
+      endfor
+    else
+      let rlist = ExtractPattern(x, a:pattern)
+    endif
+    return self.push(rlist)
+  endfunc
+
   " zips the top two elements (both expected to be equal-sized lists) together
   " takes an optional method - see Zip() at top of file for details
   func obj.zip(...) dict
@@ -444,6 +503,10 @@ function! Stack()
     endif
     let x = self.pop()
     return self.push(Zip(self.pop(), x, method))
+  endfunc
+
+  func obj.unzip() dict
+    return self.dup().map('v:val[0]').rotate().map('v:val[1]')
   endfunc
 
   " opt arg 1: method
