@@ -572,3 +572,7 @@ if exists('_S')
   unlet _S
 endif
 let _S = Stack()
+
+" rotate the current visual block
+vnoremap <leader>R y:let @"=join(Stack().pusheach(split(@", "\n")).rotate(1,len(substitute(@", "[^\n]", '', 'g'))+1).s(), "\n")\|call setreg('"', '', 'ab')<cr>gvpgv
+
